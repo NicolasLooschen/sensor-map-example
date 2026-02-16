@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serve } from "@hono/node-server";
 import { loadEnvFile } from 'node:process';
-import { parseIntFromEnv } from "./util";
+import { parseIntFromEnv } from "./util.js";
 import { join } from "node:path";
 
 import data from './data.json' with {type: "json"};
