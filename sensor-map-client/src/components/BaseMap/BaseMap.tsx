@@ -10,11 +10,14 @@ import { DEFAULT_STYLE_JSON } from "../../shared/constants";
 
 import 'maplibre-gl/dist/maplibre-gl.css';
 import "./BaseMap.css";
-
+import { SensorsLayer } from "../Layers/SensorsLayer";
+import { useSetAtom } from "jotai";
+import { mapAtom } from "../../shared/atoms";
 
 
 export function BaseMap(){
     const refContainer = useRef<HTMLDivElement>(null);
+    const setMap = useSetAtom(mapAtom);
 
     useEffect(() => {
         if (refContainer.current) {
@@ -25,11 +28,19 @@ export function BaseMap(){
                 fitBoundsOptions: { padding: 100 },
             });
 
+            map.once('load', () => {
+                setMap(map);
+            })
+
             return () => {
+                setMap(null);
                 map.remove();
             }
         }
     }, [])
 
-    return <div ref={refContainer} className="base-map-container" />
+    return <div ref={refContainer} className="base-map-container" >
+        <SensorsLayer />
+    </div>
+
 }
