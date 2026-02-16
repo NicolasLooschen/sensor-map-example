@@ -6,9 +6,10 @@
  */
 import { useEffect, useRef } from "react";
 import { Map as MaplibreGlMap } from "maplibre-gl";
-import { DEFAULT_STYLE_JSON } from "../shared/constants";
+import { DEFAULT_STYLE_JSON } from "../../shared/constants";
 
 import 'maplibre-gl/dist/maplibre-gl.css';
+import "./BaseMap.css";
 
 
 
@@ -30,5 +31,5 @@ export function BaseMap(){
         }
     }, [])
 
-    return <div ref={refContainer} style={{position: 'absolute', inset: 0, width: '100vw', height: '100vh'}} />
+    return <div ref={refContainer} className="base-map-container" />
 }
