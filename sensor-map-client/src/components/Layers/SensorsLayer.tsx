@@ -5,27 +5,51 @@
  * file 'LICENSE.txt', which is part of this source code package.
  */
 import { useAtomValue } from "jotai";
-import { mapAtom, parsedDataAtom } from "../../shared/atoms";
+import { mapAtom, parsedDataAtom, selectedNetworkAtom, selectedTimestampAtom } from "../../shared/atoms";
 import { useEffect } from "react";
+import type { ExpressionSpecification, FilterSpecification } from "maplibre-gl";
 
+const textLayerId = 'sensors-layer-text';
+const circleLayerId = 'sensors-layer-circle';
+const sourceId = 'sensors';
+
+
+function getFilter(selectedTimestamp: number | null, selectedNetwork: string | null): FilterSpecification {
+    const filters: ExpressionSpecification = ['all'];
+
+    if (selectedTimestamp !== null) {
+        filters.push(['==', ['get', 'time'], selectedTimestamp]);
+    }
+
+    if (selectedNetwork !== null) {
+        filters.push(['==', ['get', 'network'], selectedNetwork]);
+    }
+
+    return filters;
+}
 
 export function SensorsLayer() {
-    const data = useAtomValue(parsedDataAtom);
+    const { featureCollection, bounds } = useAtomValue(parsedDataAtom);
     const map = useAtomValue(mapAtom);
+    const selectedTimestamp = useAtomValue(selectedTimestampAtom);
+    const selectedNetwork = useAtomValue(selectedNetworkAtom);
 
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: We only access the selectedTimestamp to initialize the filter
     useEffect(() => {
-        if(map && data) {
-            const sourceId = 'sensors';
+        if(map && featureCollection) {
+            map.fitBounds(bounds, {duration: 3000, padding: 100});
             if (!map.getSource(sourceId)) {
                 map.addSource(sourceId, {
                     type: 'geojson',
-                    data,});
+                    data: featureCollection,
+                });
             }
+            const filter = getFilter(selectedTimestamp, selectedNetwork);
 
-            const circleLayerId = 'sensors-layer-circle';
             if (!map.getLayer(circleLayerId)) {
                 map.addLayer({
+                    filter,
                     id: circleLayerId,
                     type: 'circle',
                     source: sourceId,
@@ -46,9 +70,9 @@ export function SensorsLayer() {
                 });
             }
 
-            const textLayerId = 'sensors-layer-text';
             if (!map.getLayer(textLayerId)) {
                 map.addLayer({
+                    filter,
                     id: textLayerId,
                     type: 'symbol',
                     source: sourceId,
@@ -57,8 +81,6 @@ export function SensorsLayer() {
                         'text-size': 12,
                         'text-offset': [0, 0],
                         'text-anchor': 'center',
-                        'text-allow-overlap': true,
-                        'text-ignore-placement': true,
                     },
                     paint: {
                         'text-color': '#000000',
@@ -80,9 +102,20 @@ export function SensorsLayer() {
                 }
             }
         }
-    }, [map, data])
+    }, [map, featureCollection, bounds])
 
+    useEffect(() => {
+        if(!map?._removed && map?.getSource(sourceId)) {
+            const filter = getFilter(selectedTimestamp, selectedNetwork);
 
+            if(map?.getLayer(circleLayerId)) {
+                map.setFilter(circleLayerId, filter);
+            }
+            if(map?.getLayer(textLayerId)) {
+                map.setFilter(textLayerId, filter);
+            }
+        }
+    }, [map, selectedTimestamp ,selectedNetwork])
 
 
     return null;
