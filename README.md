@@ -29,7 +29,8 @@ npm install
 
 ### Development
 
-Run both client and server in development mode:
+1. Copy the `.env.example` file to `.env` in both `sensor-map-client` and `sensor-map-server` directories and adjust any necessary environment variables.
+2. Run both client and server in development mode:
 
 ```bash
 npm run dev
